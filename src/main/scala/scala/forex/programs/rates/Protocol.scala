@@ -1,6 +1,6 @@
 package scala.forex.programs.rates
 
-import forex.domain.Currency
+import scala.forex.domain.Currency
 
 object Protocol {
 

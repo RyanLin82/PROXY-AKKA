@@ -1,8 +1,9 @@
 package scala.forex.http.rates
 
-import forex.domain.Currency
 import org.http4s.QueryParamDecoder
 import org.http4s.dsl.impl.QueryParamDecoderMatcher
+
+import scala.forex.domain.Currency
 
 object QueryParams {
 

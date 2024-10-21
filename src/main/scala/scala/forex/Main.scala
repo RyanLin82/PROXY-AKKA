@@ -1,28 +1,31 @@
 package scala.forex
 
+import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
+
 import scala.concurrent.ExecutionContext
-import cats.effect._
-import forex.config._
-import fs2.Stream
-import org.http4s.blaze.server.BlazeServerBuilder
+import scala.forex.http.rates.RatesHttpRoutes
+import scala.forex.programs.forex.ForexClient
+import scala.forex.services.RatesService
 
-object Main extends IOApp {
+object Main extends App {
+  implicit val system: ActorSystem = ActorSystem("ForexProxySystem")
+  implicit val materializer: Materializer = Materializer(system)
+  implicit val ec: ExecutionContext = system.dispatcher
 
-  override def run(args: List[String]): IO[ExitCode] =
-    new Application[IO].stream(executionContext).compile.drain.as(ExitCode.Success)
+  val externalClient = new ForexClient()
+  val proxyService = new RatesService(externalClient)
+  val ratesHttpRoutes = new RatesHttpRoutes(proxyService)
 
-}
+  val routes: Route = ratesHttpRoutes.routes
+  val serverFuture = Http().newServerAt("localhost", 8090).bindFlow(routes)
 
-class Application[F[_]: ConcurrentEffect: Timer] {
-
-  def stream(ec: ExecutionContext): Stream[F, Unit] =
-    for {
-      config <- Config.stream("app")
-      module = new Module[F](config)
-      _ <- BlazeServerBuilder[F](ec)
-            .bindHttp(config.http.port, config.http.host)
-            .withHttpApp(module.httpApp)
-            .serve
-    } yield ()
-
+  serverFuture.onComplete {
+    case scala.util.Success(_) =>
+      println("Server running at http://localhost:8090/")
+    case scala.util.Failure(ex) =>
+      println(s"Failed to bind: ${ex.getMessage}")
+  }
 }

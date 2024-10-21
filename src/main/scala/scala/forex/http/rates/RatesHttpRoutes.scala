@@ -1,28 +1,29 @@
 package scala.forex.http.rates
 
-import cats.effect.Sync
-import cats.syntax.flatMap._
-import forex.programs.RatesProgram
-import forex.programs.rates.{ Protocol => RatesProgramProtocol }
-import org.http4s.HttpRoutes
-import org.http4s.dsl.Http4sDsl
-import org.http4s.server.Router
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 
-class RatesHttpRoutes[F[_]: Sync](rates: RatesProgram[F]) extends Http4sDsl[F] {
+import scala.forex.domain.{Currency, Rate}
+import scala.forex.services.RatesService
+import scala.util.{Failure, Success}
 
-  import Converters._, QueryParams._, Protocol._
+class RatesHttpRoutes(proxyService: RatesService) {
 
-  private[http] val prefixPath = "/rates"
+  val routes: Route = {
+    path("rates") {
+      get {
+        parameters("from".as[String], "to".as[String]) { (from, to) =>
+          val ratePair = Rate.Pair(Currency.fromString(from), Currency.fromString(to))
 
-  private val httpRoutes: HttpRoutes[F] = HttpRoutes.of[F] {
-    case GET -> Root :? FromQueryParam(from) +& ToQueryParam(to) =>
-      rates.get(RatesProgramProtocol.GetRatesRequest(from, to)).flatMap(Sync[F].fromEither).flatMap { rate =>
-        Ok(rate.asGetApiResponse)
+          onComplete(proxyService.fetchRatesForMultiplePairs(ratePair)) {
+            case Success(response) => complete(response)
+            case Failure(exception) => complete(StatusCodes.InternalServerError -> exception.getMessage)
+
+          }
+        }
       }
+    }
   }
-
-  val routes: HttpRoutes[F] = Router(
-    prefixPath -> httpRoutes
-  )
 
 }
