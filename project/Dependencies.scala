@@ -29,6 +29,10 @@ object Dependencies {
     lazy val akkaActor = akka("akka-actor")
     lazy val akkaStream = akka("akka-stream")
     lazy val akkaHttp = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
+    lazy val akkaHttpCirce = "de.heikoseeberger" %% "akka-http-circe" % "1.39.2"
+    lazy val caffeine = "com.github.ben-manes.caffeine" % "caffeine" % "2.9.3"
+    lazy val spray = "com.typesafe.akka" %% "akka-http-spray-json" % "10.5.3"
+
 
     lazy val circeCore = circe("circe-core")
     lazy val circeGeneric = circe("circe-generic")
