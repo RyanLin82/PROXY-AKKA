@@ -2,69 +2,55 @@ package scala.forex
 
 import akka.actor.{ActorSystem, Scheduler}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{StatusCodes, Uri}
-import akka.http.scaladsl.server.Directives.{complete, extractUri, handleExceptions, optionalHeaderValueByName, provide, redirect}
-import akka.http.scaladsl.server.{Directive1, ExceptionHandler, Route}
-import akka.stream.Materializer
+import akka.http.scaladsl.server.Directives.handleExceptions
+import akka.http.scaladsl.server.Route
+import akka.stream.{Materializer, SystemMaterializer}
+import org.slf4j.LoggerFactory
 
-import scala.concurrent.{ExecutionContext, TimeoutException}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.forex.config.ApplicationConfig
+import scala.forex.http.ServerUtils
 import scala.forex.http.rates.RatesHttpRoutes
-import scala.forex.programs.forex.ForexClient
+import scala.forex.programs.rates.forex.ForexClient
 import scala.forex.services.RatesService
+import scala.util.{Failure, Success}
 
+/**
+ * Entry point for the Forex Proxy Server application.
+ * Initializes the necessary components and starts the server.
+ */
 object Main extends App {
+  private val logger = LoggerFactory.getLogger(getClass)
+
   implicit val system: ActorSystem = ActorSystem("ForexProxySystem")
-  implicit val materializer: Materializer = Materializer(system)
+  implicit val materializer: Materializer = SystemMaterializer(system).materializer
   implicit val ec: ExecutionContext = system.dispatcher
   implicit val scheduler: Scheduler = system.scheduler
 
+  // Load configurations
+  private val serverConfig = ApplicationConfig()
   val externalClient = new ForexClient()
   val proxyService = new RatesService(externalClient)
-  val ratesHttpRoutes = new RatesHttpRoutes(proxyService)
+  private val ratesHttpRoutes = new RatesHttpRoutes(proxyService)
 
-  implicit def exceptionHandler: ExceptionHandler = ExceptionHandler {
-    case ex: TimeoutException =>
-      println("handler exception timeout")
-      complete(StatusCodes.RequestTimeout -> s"Request timed out: ${ex.getMessage}")
-    case ex: Exception =>
-      println("handler exception")
-      complete(StatusCodes.InternalServerError -> s"Internal server error: ${ex.getMessage}")
-  }
-
-  // Matches `/rates` or `/rates/` and redirects them to `/rates`
-  private def removeTrailingSlash(route: Route): Route = {
-    extractUri { path =>
-      val cleanedPath = path.toString().stripSuffix("/")
-      if (cleanedPath == path.toString()) {
-        route
-      } else {
-        redirect(Uri(cleanedPath), StatusCodes.PermanentRedirect)
-      }
-    }
-  }
-
-  // Custom security check directive to verify token
-  def securityCheck: Directive1[String] = {
-    optionalHeaderValueByName("Authorization").flatMap {
-      case Some(token) if token == "Bearer test-token" => provide(token)
-      case _ => complete(StatusCodes.Unauthorized -> "Missing or invalid token")
-    }
-  }
-
-  val routes: Route = handleExceptions(exceptionHandler) {
-    removeTrailingSlash {
-      securityCheck { _=>
+  // Define routes
+  private val routes: Route = handleExceptions(ServerUtils.exceptionHandler) {
+    ServerUtils.removeTrailingSlash {
+      ServerUtils.securityCheck { _ =>
         ratesHttpRoutes.routes
       }
     }
   }
 
-  val serverFuture = Http().newServerAt("localhost", 8090).bindFlow(routes)
+  // Start the server
+  private val serverFuture: Future[Http.ServerBinding] = Http().newServerAt(serverConfig.host, serverConfig.port).bindFlow(routes)
 
   serverFuture.onComplete {
-    case scala.util.Success(_) =>
-      println("Server running at http://localhost:8090/")
-    case scala.util.Failure(ex) =>
-      println(s"Failed to bind: ${ex.getMessage}")
+    case Success(_) =>
+      logger.info("Server running at http://{}:{}/", serverConfig.host, serverConfig.port)
+    case Failure(ex) =>
+      logger.error("Failed to bind server. Error: {}", ex.getMessage)
+      system.terminate()
   }
 }
+

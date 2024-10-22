@@ -4,7 +4,7 @@ import io.circe._
 import io.circe.generic.semiauto.deriveEncoder
 
 import java.time.OffsetDateTime
-import scala.forex.programs.domain.ForexApiResponse
+import scala.forex.programs.rates.domain.ForexApiResponse
 
 object Protocol {
 

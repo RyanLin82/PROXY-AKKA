@@ -28,6 +28,7 @@ object Dependencies {
     lazy val fs2 = "co.fs2" %% "fs2-core" % Versions.fs2
     lazy val akkaActor = akka("akka-actor")
     lazy val akkaStream = akka("akka-stream")
+    lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
     lazy val akkaHttp = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
     lazy val akkaHttpCirce = "de.heikoseeberger" %% "akka-http-circe" % "1.39.2"
     lazy val caffeine = "com.github.ben-manes.caffeine" % "caffeine" % "2.9.3"

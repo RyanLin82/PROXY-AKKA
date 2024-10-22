@@ -1,9 +1,8 @@
 import Dependencies.Libraries
-import sbt.internal.IvyConsole.Dependencies.*
 
 version := "1.0.1"
 
-scalaVersion := "2.13.12"
+scalaVersion := "2.13.1"
 scalacOptions ++= Seq(
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   "-encoding",
@@ -45,6 +44,7 @@ scalacOptions ++= Seq(
   "-Ycache-plugin-class-loader:last-modified", // Enables caching of classloaders for compiler plugins
   "-Ycache-macro-class-loader:last-modified" // and macro definitions. This can lead to performance improvements.
 )
+unmanagedSourceDirectories in Compile += baseDirectory.value / "main/resources"
 
 resolvers +=
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
@@ -52,6 +52,7 @@ resolvers +=
 libraryDependencies ++= Seq(
   compilerPlugin(Libraries.kindProjector),
   Libraries.cats,
+  Libraries.typesafeConfig,
   Libraries.akkaActor,
   Libraries.akkaHttp,
   Libraries.akkaStream,
