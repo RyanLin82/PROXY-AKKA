@@ -8,8 +8,8 @@ import scala.forex.domain._
 /**
  * Represents a response from the Forex API containing exchange rate information.
  *
- * @param pair The currency pair.
- * @param price The price of the exchange rate.
+ * @param pair      The currency pair.
+ * @param price     The price of the exchange rate.
  * @param timestamp The timestamp of the rate information.
  */
 final case class ForexApiResponse(

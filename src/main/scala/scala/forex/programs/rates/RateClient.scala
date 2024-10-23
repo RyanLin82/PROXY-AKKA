@@ -4,7 +4,7 @@ import scala.concurrent.Future
 import scala.forex.domain.Rate.Pair
 import scala.forex.programs.rates.domain.ForexApiResponse
 
-trait Algebra {
+trait RateClient[F[_]] {
   /**
    * Fetches rates for all possible currency pairs.
    *

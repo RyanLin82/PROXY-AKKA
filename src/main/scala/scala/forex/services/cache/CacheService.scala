@@ -16,7 +16,6 @@ import scala.forex.programs.rates.domain.ForexApiResponse
  */
 class CacheService(cacheConfig: CacheConfig = CacheConfig()) {
 
-  // Initialize logger
   private val logger = LoggerFactory.getLogger(classOf[CacheService])
 
   // Cache for storing Forex rates, keyed by currency pair
@@ -77,5 +76,15 @@ class CacheService(cacheConfig: CacheConfig = CacheConfig()) {
    */
   def getResourceServerStatus(serverName: String): Option[Boolean] = {
     Option(resourceServerCache.getIfPresent(serverName))
+  }
+
+  /**
+   * Evicts a specific entry from the resource server cache by the given key.
+   *
+   * @param key The key of the entry to be evicted.
+   */
+  def evictResourceServerCache(key: String): Unit = {
+    resourceServerCache.invalidate(key)
+    println(s"Evicted cache entry for key: $key")
   }
 }

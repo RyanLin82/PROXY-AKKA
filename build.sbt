@@ -2,7 +2,7 @@ import Dependencies.Libraries
 
 version := "1.0.1"
 
-scalaVersion := "2.13.1"
+scalaVersion := "2.13.12"
 scalacOptions ++= Seq(
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   "-encoding",
@@ -69,5 +69,8 @@ libraryDependencies ++= Seq(
   Libraries.logback,
   Libraries.scalaTest      % Test,
   Libraries.scalaCheck     % Test,
-  Libraries.catsScalaCheck % Test
+  Libraries.catsScalaCheck % Test,
+  Libraries.mockito % Test,
+  Libraries.akkaTestKit % Test,
+  Libraries.akkaActorTestKit % Test
 )

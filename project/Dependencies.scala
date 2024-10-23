@@ -3,12 +3,12 @@ import sbt._
 object Dependencies {
 
   object Versions {
-    val cats = "2.6.1"
-    val catsEffect = "2.5.1"
-    val fs2 = "2.5.4"
+    val cats = "2.12.0"
+    val catsEffect = "3.5.4"
+    val fs2 = "3.10.2"
     val circe = "0.14.2"
     val pureConfig = "0.17.4"
-    val akka = "2.8.5"
+    val akka = "2.8.6"
     val akkaHttp = "10.5.3"
 
     val kindProjector = "0.13.2"
@@ -28,11 +28,16 @@ object Dependencies {
     lazy val fs2 = "co.fs2" %% "fs2-core" % Versions.fs2
     lazy val akkaActor = akka("akka-actor")
     lazy val akkaStream = akka("akka-stream")
-    lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.2"
-    lazy val akkaHttp = "com.typesafe.akka" %% "akka-http" % Versions.akkaHttp
+    lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
+    lazy val akkaHttp = "com.typesafe.akka" %% "akka-http" % "10.5.3"
     lazy val akkaHttpCirce = "de.heikoseeberger" %% "akka-http-circe" % "1.39.2"
     lazy val caffeine = "com.github.ben-manes.caffeine" % "caffeine" % "2.9.3"
     lazy val spray = "com.typesafe.akka" %% "akka-http-spray-json" % "10.5.3"
+    lazy val mockito = "org.mockito" %% "mockito-scala" % "1.17.37"
+    lazy val akkaTestKit ="com.typesafe.akka" %% "akka-http-testkit" % "10.5.3"
+    lazy val akkaActorTestKit = "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.8.6"
+
+
 
 
     lazy val circeCore = circe("circe-core")

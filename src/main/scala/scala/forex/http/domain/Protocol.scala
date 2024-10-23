@@ -1,4 +1,4 @@
-package scala.forex.http.rates
+package scala.forex.http.domain
 
 import io.circe._
 import io.circe.generic.semiauto.deriveEncoder

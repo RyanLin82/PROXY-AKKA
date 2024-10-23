@@ -1,4 +1,4 @@
-package scala.forex.http
+package scala.forex.config
 
 import akka.http.scaladsl.model.{StatusCode, StatusCodes, Uri}
 import akka.http.scaladsl.server.Directives.{complete, extractUri, optionalHeaderValueByName, provide, redirect}
@@ -44,9 +44,8 @@ object ServerUtils {
       complete(StatusCodes.BadRequest -> errorResponse.asJson)
 
     case ex: ProxyException =>
-      logger.warn("Handler exception: circuit breaker open", ex)
       val errorResponse = ProxyErrorResponse(
-        status = StatusCodes.TooManyRequests.intValue,
+        status = ex.getCode,
         errorCode = ex.getCode.toString,
         message = ex.getMessage
       )

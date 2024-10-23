@@ -1,6 +1,7 @@
 package scala.forex
 
 import akka.actor.{ActorSystem, Scheduler}
+import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.handleExceptions
 import akka.http.scaladsl.server.Route
@@ -8,11 +9,11 @@ import akka.stream.{Materializer, SystemMaterializer}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.forex.config.ApplicationConfig
-import scala.forex.http.ServerUtils
+import scala.forex.config.LoggingDirective.logRequestEntity
+import scala.forex.config.{ApplicationConfig, ServerUtils}
 import scala.forex.http.rates.RatesHttpRoutes
 import scala.forex.programs.rates.forex.ForexClient
-import scala.forex.services.RatesService
+import scala.forex.services.rates.RatesService
 import scala.util.{Failure, Success}
 
 /**
@@ -33,7 +34,6 @@ object Main extends App {
   val proxyService = new RatesService(externalClient)
   private val ratesHttpRoutes = new RatesHttpRoutes(proxyService)
 
-  // Define routes
   private val routes: Route = handleExceptions(ServerUtils.exceptionHandler) {
     ServerUtils.removeTrailingSlash {
       ServerUtils.securityCheck { _ =>
@@ -41,9 +41,9 @@ object Main extends App {
       }
     }
   }
+  private val loggedRoute = logRequestEntity(routes, Logging.InfoLevel)
 
-  // Start the server
-  private val serverFuture: Future[Http.ServerBinding] = Http().newServerAt(serverConfig.host, serverConfig.port).bindFlow(routes)
+  private val serverFuture: Future[Http.ServerBinding] = Http().newServerAt(serverConfig.host, serverConfig.port).bindFlow(loggedRoute)
 
   serverFuture.onComplete {
     case Success(_) =>

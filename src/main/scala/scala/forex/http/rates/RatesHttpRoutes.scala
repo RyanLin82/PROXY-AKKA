@@ -7,7 +7,8 @@ import io.circe.syntax.EncoderOps
 import org.slf4j.LoggerFactory
 
 import scala.forex.domain.{Currency, Rate}
-import scala.forex.services.RatesService
+import scala.forex.http.domain.Protocol
+import scala.forex.services.rates.RatesService
 import scala.util.{Failure, Success}
 
 /**
@@ -39,12 +40,10 @@ class RatesHttpRoutes(proxyService: RatesService) {
                   logger.error("Rate not found for pair: {} -> {}", from, to)
                   complete(StatusCodes.InternalServerError -> "Error: Rate not found")
                 case Some(res) =>
-                  logger.info("Successfully fetched rate for pair: {} -> {}", from, to)
                   complete(HttpEntity(ContentTypes.`application/json`, Protocol.fromForexApiResponse(res).asJson.noSpaces))
               }
             case Failure(exception) =>
-              logger.error("Failed to fetch rates for pair: {} -> {}. Error: {}", from, to, exception.getMessage)
-              complete(StatusCodes.InternalServerError -> s"Error: ${exception.getMessage}")
+              complete(exception)
           }
         }
       }
